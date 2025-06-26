@@ -1,16 +1,50 @@
+import connection from "../db.js";
 
 //INDEX
 const index = (req, res) => {
-    res.json({
-        data: "tutti gli elementi"
+    const sql = `
+        SELECT * 
+        FROM movies;
+    `
+
+    connection.query(sql, (err, results) => {
+        if(err) {
+            console.log("errore");   
+        } else {
+            
+            res.json({
+                data: results,
+                count: results.length
+            });
+        }
     })
 };
 
 //SHOW
 const show = (req, res) => {
-    const movieId = req.params.id;
-        res.json({
-        data: `un solo elemento elementi con id ${movieId}`
+    const id = req.params.id;
+
+    const sql = `
+        SELECT * 
+        FROM movies 
+        WHERE id = ?;
+    `
+
+    connection.query(sql, [id], (err, results) => {
+        if(err) {
+            console.log("errore");
+            
+        } else {
+            if(results.lenght === 0) {
+                res.status(404).json({
+                    error: "post non trovato"
+                });
+            } else {
+                res.status(200).json({
+                    data: results[0]
+                });
+            }
+        } 
     })
 };
 
