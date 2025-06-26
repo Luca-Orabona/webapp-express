@@ -8,54 +8,69 @@ const index = (req, res) => {
     `
 
     connection.query(sql, (err, results) => {
-        if(err) {
-            console.log("errore");   
+        if (err) {
+            console.log(err);
         } else {
-            
+            const movies = results.map((curMovie) => {
+                return {
+                    ...curMovie,
+                    image: `${req.imagePath}/${curMovie.image}`,
+                };
+            });
+
             res.json({
-                data: results,
-                count: results.length
+                data: movies,
             });
         }
-    })
+    });
 };
 
 //SHOW
 const show = (req, res) => {
     const id = req.params.id;
 
-    const sql = `
+    const movieSql = `
         SELECT * 
         FROM movies 
         WHERE id = ?;
-    `
+    `;
 
-    connection.query(sql, [id], (err, results) => {
-        if(err) {
-            console.log("errore");
-            
+    const reviewsSql = `
+        SELECT *
+        FROM reviews
+        WHERE reviews.movie_id = ?;
+    `;
+
+    connection.query(movieSql, [id], (err, moviesResults) => {
+        if (err) {
+            console.log(err);
+        }
+
+        if (moviesResults.length === 0) {
+            res.status(404).json({
+                error: "movie not found",
+            });
         } else {
-            if(results.lenght === 0) {
-                res.status(404).json({
-                    error: "post non trovato"
+            connection.query(reviewsSql, [id], (err, reviewsResults) => {
+                res.json({
+                    data: {
+                        ...moviesResults[0],
+                        reviews: reviewsResults,
+                    },
                 });
-            } else {
-                res.status(200).json({
-                    data: results[0]
-                });
-            }
-        } 
-    })
+            });
+        }
+    });
 };
 
 //STORE
 const store = (req, res) => {
-    
+
 };
 
 //UPDATE
 const update = (req, res) => {
-  
+
 };
 
 //DESTROY
